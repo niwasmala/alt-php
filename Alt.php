@@ -287,9 +287,15 @@ class Alt {
     public static function autoload($class){
         // Transform the class name according to PSR-0
         $class     = ltrim($class, '\\');
-        $file      = ALT_PATH . 'engine' . DIRECTORY_SEPARATOR . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
+        $file      = ALT_PATH . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
 
         if (is_file($file)) {
+            require $file;
+            return TRUE;
+        }
+
+        $file      = APP_PATH . 'engine' . DIRECTORY_SEPARATOR . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
+        if(is_file($file)){
             require $file;
             return TRUE;
         }
