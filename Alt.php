@@ -120,7 +120,7 @@ class Alt {
         self::$timestart = $_SERVER['REQUEST_TIME_FLOAT'];
 
         // read config
-        self::$config = include_once ALT_PATH . 'config.php';
+        self::$config = include_once APP_PATH . 'config.php';
 
         // set environment
         self::$environment = self::$config['app']['environment'] ? (strtolower(self::$config['app']['environment']) == 'development' ? self::ENV_DEVELOPMENT : self::ENV_PRODUCTION) : self::$environment;
@@ -220,12 +220,12 @@ class Alt {
                 $fn($routes);
 
             // pre file before controller
-            $pre = ALT_PATH . 'route' . DIRECTORY_SEPARATOR . $routes[0] . DIRECTORY_SEPARATOR . 'pre.php';
+            $pre = APP_PATH . 'route' . DIRECTORY_SEPARATOR . $routes[0] . DIRECTORY_SEPARATOR . 'pre.php';
             if(is_file($pre))
                 include_once $pre;
 
             // try get file in route folder
-            $controller = ALT_PATH . 'route' . DIRECTORY_SEPARATOR . $routing . '.php';
+            $controller = APP_PATH . 'route' . DIRECTORY_SEPARATOR . $routing . '.php';
             if(!is_file($controller)) throw new Alt_Exception("Request not found", self::STATUS_NOTFOUND);
 
             ob_start();
@@ -242,7 +242,7 @@ class Alt {
                 $fn($routes);
 
             // post route
-            $post = ALT_PATH . 'route' . DIRECTORY_SEPARATOR . $routes[0] . DIRECTORY_SEPARATOR . 'post.php';
+            $post = APP_PATH . 'route' . DIRECTORY_SEPARATOR . $routes[0] . DIRECTORY_SEPARATOR . 'post.php';
             if(is_file($post))
                 include_once $post;
 
@@ -272,7 +272,7 @@ class Alt {
         self::$timestart = $_SERVER['REQUEST_TIME_FLOAT'];
 
         // read config
-        self::$config = include_once ALT_PATH . 'config.php';
+        self::$config = include_once APP_PATH . 'config.php';
 
         // set environment
         self::$environment = self::$config['app']['environment'] ? (strtolower(self::$config['app']['environment']) == 'development' ? self::ENV_DEVELOPMENT : self::ENV_PRODUCTION) : self::$environment;

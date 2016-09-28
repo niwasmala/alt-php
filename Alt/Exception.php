@@ -35,7 +35,7 @@ class Alt_Exception extends Exception {
                 count($trace) && array_key_exists("class", $trace[0]) ? str_replace("\\", ".", $trace[0]["class"]) : "",
                 count($trace) && array_key_exists("class", $trace[0]) && array_key_exists("function", $trace[0]) ? "." : "",
                 count($trace) && array_key_exists("function", $trace[0]) ? str_replace("\\", ".", $trace[0]["function"]) : "(main)",
-                str_replace(ALT_PATH, "", $file),
+                str_replace(APP_PATH, "", $file),
                 $line === null ? "" : ":",
                 $line === null ? "" : $line);
             if (is_array($seen))
