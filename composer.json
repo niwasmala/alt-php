@@ -1,5 +1,6 @@
 {
   "name": "alt-php/alt-php",
+  "version": "1.0.0",
   "description": "Alt-PHP Framework",
   "require": {
     "php": "^5.3.3 || ^7.0"
