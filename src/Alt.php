@@ -352,15 +352,11 @@ class Alt
             return TRUE;
         }
 
-        if (is_file(ALT_PATH . 'vendor' . $file)) {
-            require ALT_PATH . 'vendor' . $file;
+        if (is_file(ALT_PATH . 'vendor/niwasmala/alt-php/src' . $file)) {
+            require ALT_PATH . 'vendor/niwasmala/alt-php/src' . $file;
             return TRUE;
         }
 
-        if (is_file(ALT_PATH . '../src' . $file)) {
-            require ALT_PATH . '../src' . $file;
-            return TRUE;
-        }
         return FALSE;
     }
 
