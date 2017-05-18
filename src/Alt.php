@@ -434,6 +434,7 @@ class Alt
 
         // output: http://
         $protocol = strtolower(substr($_SERVER["SERVER_PROTOCOL"],0,5))=='https://'?'https://':'http://';
+        $protocol = isset($_SERVER["HTTPS"]) ? 'https' : 'http';
 
         // return: http://localhost/myproject/
         return $protocol.$hostName.$pathInfo['dirname']."/";
