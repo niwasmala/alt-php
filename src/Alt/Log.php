@@ -42,6 +42,7 @@ class Alt_Log {
             }
             $type .= "] " . date("H:m:s") . "\n";
 
+            file_put_contents('php://stderr', $type . (gettype($message) == "string" || gettype($message) == "number" ? $message : json_encode($message)) . "\n\n");
             file_put_contents($file, $type . (gettype($message) == "string" || gettype($message) == "number" ? $message : json_encode($message)) . "\n\n", FILE_APPEND | LOCK_EX);
         }
     }

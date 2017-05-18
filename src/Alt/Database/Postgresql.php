@@ -24,7 +24,7 @@ class Alt_Database_Postgresql extends Alt_Database
 
 			extract($this->_config['connection']);
 
-			if ( ! empty($host))
+			if ( ! empty($hostname))
 			{
 				$info .= "host='$hostname'";
 			}
@@ -82,11 +82,11 @@ class Alt_Database_Postgresql extends Alt_Database
 		}
 		catch (ErrorException $e)
 		{
-			throw new Alt_Exception(':error', array(':error' => $e->getMessage()));
+			throw new Alt_Exception($e->getMessage());
 		}
 
 		if ( ! is_resource($this->_connection))
-			throw new Alt_Exception('Unable to connect to PostgreSQL ":name"', array(':name' => $this->_instance));
+			throw new Alt_Exception('Unable to connect to PostgreSQL "' . $this->_instance . '"');
 
 		$this->_version = pg_parameter_status($this->_connection, 'server_version');
 

@@ -1,0 +1,37 @@
+# Turn on URL rewriting
+RewriteEngine on
+
+# Installation directory
+RewriteBase /alt-php/skeleton/
+
+# Protect hidden files from being viewed
+<Files .*>
+	Order Deny,Allow
+	Deny From All
+</Files>
+
+# Protect application and system files from being viewed
+RewriteRule ^(?:config|engine)\b.* index.php/$0 [L]
+
+# Allow any files or directories under static folder to be displayed directly
+RewriteCond %{DOCUMENT_ROOT}/static/$1 -f
+RewriteRule ^(.*)$ static/$1 [PT,L,QSA]
+
+# Rewrite all other URLs to index.php/URL
+RewriteCond %{THE_REQUEST} \s/static/ [NC,OR]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php?$0 [PT,L,QSA]
+
+<IfModule mod_php5.c>
+    php_value opcache.enable 0
+</IfModule>
+
+<IfModule mod_deflate.c>
+    #apache2.4.6
+    <filesMatch "\.(js|css|json|xml|txt|html|php)$">
+        SetOutputFilter DEFLATE
+    </filesMatch>
+    #apache2.2
+    #SetOutputFilter DEFLATE
+    #AddOutputFilterByType DEFLATE text/text text/html text/plain text/xml text/css application/x-javascript application/javascript application/json
+</IfModule>

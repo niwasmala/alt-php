@@ -1,8 +1,16 @@
 {
-  "name": "alt-php/alt-php",
-  "version": "1.0.1",
-  "description": "Alt-PHP Framework",
-  "require": {
-    "php": "^5.3.3 || ^7.0"
-  }
+    "name": "alt/php",
+    "description": "Alt Framework - PHP Version",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nicky Irawan",
+            "email": "niwasmala@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.3.0"
+    }
 }

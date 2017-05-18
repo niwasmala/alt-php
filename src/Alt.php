@@ -1,12 +1,13 @@
 <?php defined('ALT_PATH') OR die('No direct access allowed.');
 
 // php5.2 support
-function array_union(){
+function array_union()
+{
     $args = func_get_args();
 
     $array1 = is_array($args[0]) ? $args[0] : array();
     $union = $array1;
-    if(count($args) > 1) for($i=1; $i<count($args); $i++){
+    if (count($args) > 1) for ($i = 1; $i < count($args); $i++) {
         $array2 = $args[$i];
         foreach ($array2 as $key => $value) {
             if (false === array_key_exists($key, $union)) {
@@ -18,12 +19,13 @@ function array_union(){
     return $union;
 }
 
-if (!function_exists('http_response_code')){
-    function http_response_code($newcode = NULL) {
+if (!function_exists('http_response_code')) {
+    function http_response_code($newcode = NULL)
+    {
         static $code = 200;
-        if($newcode !== NULL) {
-            header('X-PHP-Response-Code: '.$newcode, true, $newcode);
-            if(!headers_sent())
+        if ($newcode !== NULL) {
+            header('X-PHP-Response-Code: ' . $newcode, true, $newcode);
+            if (!headers_sent())
                 $code = $newcode;
         }
         return $code;
@@ -40,9 +42,9 @@ if (!function_exists('getallheaders')) {
     {
         $headers = array();
         $copy_server = array(
-            'CONTENT_TYPE'   => 'Content-Type',
+            'CONTENT_TYPE' => 'Content-Type',
             'CONTENT_LENGTH' => 'Content-Length',
-            'CONTENT_MD5'    => 'Content-Md5',
+            'CONTENT_MD5' => 'Content-Md5',
         );
         foreach ($_SERVER as $key => $value) {
             if (substr($key, 0, 5) === 'HTTP_') {
@@ -69,61 +71,69 @@ if (!function_exists('getallheaders')) {
     }
 }
 
-class Alt {
+class Alt
+{
     // environment
-    const ENV_DEVELOPMENT           = 1;
-    const ENV_PRODUCTION            = 2;
-    public static $environment      = self::ENV_PRODUCTION;
+    const ENV_DEVELOPMENT = 1;
+    const ENV_PRODUCTION = 2;
+    public static $environment = self::ENV_PRODUCTION;
 
     // output type
-    const OUTPUT_HTML               = 'html';
-    const OUTPUT_JSON               = 'json';
-    const OUTPUT_XML                = 'xml';
-    public static $outputs          = array(
-        self::OUTPUT_JSON           => 'application/',
-        self::OUTPUT_XML            => 'application/',
-        self::OUTPUT_HTML           => 'text/',
+    const OUTPUT_HTML = 'html';
+    const OUTPUT_JSON = 'json';
+    const OUTPUT_XML = 'xml';
+    public static $outputs = array(
+        self::OUTPUT_JSON => 'application/',
+        self::OUTPUT_XML => 'application/',
+        self::OUTPUT_HTML => 'text/',
     );
-    public static $output           = self::OUTPUT_JSON;
+    public static $output = self::OUTPUT_JSON;
 
     // response status
-    const STATUS_OK                 = '200';
-    const STATUS_UNAUTHORIZED       = '401';
-    const STATUS_FORBIDDEN          = '403';
-    const STATUS_NOTFOUND           = '404';
-    const STATUS_ERROR              = '500';
-    public static $status           = array(
-        self::STATUS_OK             => 'OK',
-        self::STATUS_UNAUTHORIZED   => 'UNAUTHORIZED',
-        self::STATUS_FORBIDDEN      => 'FORBIDDEN',
-        self::STATUS_NOTFOUND       => 'NOT FOUND',
-        self::STATUS_ERROR          => 'ERROR',
+    const STATUS_OK = '200';
+    const STATUS_UNAUTHORIZED = '401';
+    const STATUS_FORBIDDEN = '403';
+    const STATUS_NOTFOUND = '404';
+    const STATUS_ERROR = '500';
+    public static $status = array(
+        self::STATUS_OK => 'OK',
+        self::STATUS_UNAUTHORIZED => 'UNAUTHORIZED',
+        self::STATUS_FORBIDDEN => 'FORBIDDEN',
+        self::STATUS_NOTFOUND => 'NOT FOUND',
+        self::STATUS_ERROR => 'ERROR',
     );
 
     // profiler
-    public static $timestart        = 0;
-    public static $timestop         = 0;
-    public static $config           = array();
+    public static $timestart = 0;
+    public static $timestop = 0;
+    public static $config = array();
+
+    public static $route = "route";
+    public static $routes = array();
+    public static function route($regex, $location)
+    {
+        self::$routes[$regex] = $location;
+    }
 
     /**
      * Start Alt application
      */
-    public static function start(){
+    public static function start()
+    {
         session_start();
 
         header('Access-Control-Allow-Origin: *');
         header('Access-Control-Allow-Methods: *');
-        header('Access-Control-Allow-Headers: accept, authorization, content-type');
-        http_response_code(200);
+        header('Access-Control-Allow-Headers: accept, authorization, content-type, x-requested-with');
 
         // set timestart
         self::$timestart = $_SERVER['REQUEST_TIME_FLOAT'];
 
-        // read config
-        self::$config = include_once APP_PATH . 'config.php';
+        // read config from file
+        self::$config = include_once ALT_PATH . 'config.php';
 
         // set environment
-        self::$environment = self::$config['app']['environment'] ? (strtolower(self::$config['app']['environment']) == 'development' ? self::ENV_DEVELOPMENT : self::ENV_PRODUCTION) : self::$environment;
+        self::$environment = self::$config['app']['environment'] ? self::$config['app']['environment'] : self::$environment;
 
         // set log level
         Alt_Log::$level = self::$config['log']['level'] ? self::$config['log']['level'] : (self::$environment == self::ENV_PRODUCTION ? Alt_Log::LEVEL_ERROR : Alt_Log::LEVEL_LOG);
@@ -132,14 +142,14 @@ class Alt {
         self::$output = self::$config['app']['output'] ? self::$config['app']['output'] : self::$output;
 
         // can be used as a web app or command line
-        switch(PHP_SAPI){
+        switch (PHP_SAPI) {
             case 'cli':
                 $baseurl = '';
                 $total = (int)$_SERVER['argc'];
-                if($total > 1) for($i=1; $i<$total; $i++){
+                if ($total > 1) for ($i = 1; $i < $total; $i++) {
                     list($key, $value) = explode('=', trim($_SERVER['argv'][$i]));
 
-                    switch($key){
+                    switch ($key) {
                         case '--uri':
                             $_SERVER['REQUEST_URI'] = strtolower($value);
                             break;
@@ -154,23 +164,23 @@ class Alt {
                 list($baseurl) = explode('index.php', $_SERVER['PHP_SELF']);
 
                 $headers = getallheaders();
-                if(isset($headers['Authorization']))
+                if (isset($headers['Authorization']))
                     list($bearer, $_REQUEST['token']) = explode(' ', $headers['Authorization']);
 
                 $input = file_get_contents('php://input');
-                if($input != ""){
-                    if(self::$environment == self::ENV_PRODUCTION && self::$config['security']){
+                if ($input != "") {
+                    if (self::$environment == self::ENV_PRODUCTION && self::$config['security']) {
                         $input = Alt_Security::decrypt($input, self::$config['security']);
                     }
 
                     // try to decode using json
                     $json = json_decode($input, true);
-                    if($json != null){
-                        $_REQUEST = array_union($_REQUEST, json_decode(file_get_contents('php://input')));
-                    }else{
+                    if ($json != null) {
+                        $_REQUEST = array_union($_REQUEST, $json);
+                    } else {
                         $request = array();
                         parse_str($input, $request);
-                        if(count($request) > 0){
+                        if (count($request) > 0) {
                             $_REQUEST = array_union($request, $_REQUEST);
                             $_POST = $_REQUEST;
                         }
@@ -181,7 +191,7 @@ class Alt {
         }
 
         // get authorization token
-        if(function_exists('apache_request_headers')){
+        if (function_exists('apache_request_headers')) {
             $headers = apache_request_headers();
             if (isset($headers['Authorization'])) {
                 $matches = array();
@@ -197,11 +207,11 @@ class Alt {
         $routing = $routing ? $routing : 'index';
         $routing = str_replace('/', DIRECTORY_SEPARATOR, $routing);
 
-        if(isset(self::$outputs[$ext])) self::$output = $ext;
+        if (isset(self::$outputs[$ext])) self::$output = $ext;
 
-        try{
+        try {
             // options request from cors, skip, return empty string
-            if(strtolower($_SERVER['REQUEST_METHOD']) == 'options'){
+            if (strtolower($_SERVER['REQUEST_METHOD']) == 'options') {
                 self::response(array(
                     's' => self::STATUS_OK,
                     'm' => '',
@@ -211,25 +221,71 @@ class Alt {
 
             // check pre and post routing
             $routes = explode(DIRECTORY_SEPARATOR, $routing);
-            if($routes[count($routes)-1] == 'pre' || $routes[count($routes)-1] == 'post')
+            if ($routes[count($routes) - 1] == 'pre' || $routes[count($routes) - 1] == 'post')
                 throw new Alt_Exception("Request not found", self::STATUS_NOTFOUND);
 
             // pre function in config
             $fn = self::$config["route"]["pre"];
-            if(is_callable($fn))
+            if (is_callable($fn))
                 $fn($routes);
 
             // pre file before controller
-            $pre = APP_PATH . 'route' . DIRECTORY_SEPARATOR . $routes[0] . DIRECTORY_SEPARATOR . 'pre.php';
-            if(is_file($pre))
+            $pre = ALT_PATH . self::$route . DIRECTORY_SEPARATOR . $routes[0] . DIRECTORY_SEPARATOR . 'pre.php';
+            if (is_file($pre))
                 include_once $pre;
 
             // try get file in route folder
-            $controller = APP_PATH . 'route' . DIRECTORY_SEPARATOR . $routing . '.php';
-            if(!is_file($controller)) throw new Alt_Exception("Request not found", self::STATUS_NOTFOUND);
+            $isfound = false;
+            $controller = ALT_PATH . self::$route . DIRECTORY_SEPARATOR;
+            foreach(self::$routes as $regex => $location) {
+                // Turn "(/)" into "/?"
+                $pattern = preg_replace('#\(/\)#', '/?', $regex);
+
+                // Create capture group for ":parameter"
+                $allowedParamChars = '[a-zA-Z0-9\_\-]+';
+                $pattern = preg_replace(
+                    '/:(' . $allowedParamChars . ')/',   # Replace ":parameter"
+                    '(?<$1>' . $allowedParamChars . ')', # with "(?<parameter>[a-zA-Z0-9\_\-]+)"
+                    $pattern
+                );
+
+                // Create capture group for '{parameter}'
+                $pattern = preg_replace(
+                    '/{('. $allowedParamChars .')}/',    # Replace "{parameter}"
+                    '(?<$1>' . $allowedParamChars . ')', # with "(?<parameter>[a-zA-Z0-9\_\-]+)"
+                    $pattern
+                );
+
+                // Add start and end matching
+                $pattern = "@^" . $pattern . "$@D";
+
+                preg_match($pattern, str_replace(DIRECTORY_SEPARATOR, "/", $routing), $matches);
+                if(count($matches) > 0){
+                    // Get elements with string keys from matches
+                    $params = array_intersect_key(
+                        $matches,
+                        array_flip(array_filter(array_keys($matches), 'is_string'))
+                    );
+
+                    foreach ($params as $key => $value) {
+                        $_GET[$key] = $value;
+                        $_REQUEST[$key] = $value;
+                    }
+                    $isfound = true;
+                    $controller .= is_callable($location) ? call_user_func($location, $params) : $location;
+                    break;
+                }
+            }
+
+            if(!$isfound) {
+                $controller .= $routing;
+            }
+
+            if (!is_file($controller . ".php"))
+                throw new Exception("Request not found", self::STATUS_NOTFOUND);
 
             ob_start();
-            $res = (include_once $controller);
+            $res = (include_once $controller . ".php");
 
             $res = ob_get_contents() ? ob_get_contents() : $res;
             ob_end_clean();
@@ -238,12 +294,12 @@ class Alt {
 
             // post function in config
             $fn = self::$config["route"]["post"];
-            if(is_callable($fn))
+            if (is_callable($fn))
                 $fn($routes);
 
             // post route
-            $post = APP_PATH . 'route' . DIRECTORY_SEPARATOR . $routes[0] . DIRECTORY_SEPARATOR . 'post.php';
-            if(is_file($post))
+            $post = ALT_PATH . self::$route . DIRECTORY_SEPARATOR . $routes[0] . DIRECTORY_SEPARATOR . 'post.php';
+            if (is_file($post))
                 include_once $post;
 
             $res = $GLOBALS['response'] = $res;
@@ -251,12 +307,12 @@ class Alt {
                 's' => self::STATUS_OK,
                 'd' => $res,
             ));
-        }catch(Alt_Exception $e){
+        } catch (Alt_Exception $e) {
             self::response(array(
                 's' => $e->getCode(),
                 'm' => $e->getMessage(),
             ));
-        }catch(Exception $e){
+        } catch (Exception $e) {
             self::response(array(
                 's' => self::STATUS_ERROR,
                 'm' => self::$environment == self::ENV_DEVELOPMENT ? $e->getCode() . " : " . $e->getMessage() : self::$status[self::STATUS_ERROR],
@@ -267,15 +323,16 @@ class Alt {
     /**
      * Test Alt application
      */
-    public static function test(){
+    public static function test()
+    {
         // set timestart
         self::$timestart = $_SERVER['REQUEST_TIME_FLOAT'];
 
         // read config
-        self::$config = include_once APP_PATH . 'config.php';
+        self::$config = include_once ALT_PATH . 'config.php';
 
         // set environment
-        self::$environment = self::$config['app']['environment'] ? (strtolower(self::$config['app']['environment']) == 'development' ? self::ENV_DEVELOPMENT : self::ENV_PRODUCTION) : self::$environment;
+        self::$environment = self::$config['app']['environment'] ? self::$config['app']['environment'] : self::$environment;
 
         // set log level
         Alt_Log::$level = self::$config['log']['level'] ? self::$config['log']['level'] : (self::$environment == self::ENV_PRODUCTION ? Alt_Log::LEVEL_ERROR : Alt_Log::LEVEL_LOG);
@@ -284,72 +341,73 @@ class Alt {
         self::$output = self::$config['app']['output'] ? self::$config['app']['output'] : self::$output;
     }
 
-    public static function autoload($class){
+    public static function autoload($class)
+    {
         // Transform the class name according to PSR-0
-        $class     = ltrim($class, '\\');
-        $file      = ALT_PATH . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
+        $class = ltrim($class, '\\');
+        $file = DIRECTORY_SEPARATOR . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
 
-        if (is_file($file)) {
-            require $file;
+        if (is_file(ALT_PATH . 'engine' . $file)) {
+            require ALT_PATH . 'engine' . $file;
             return TRUE;
         }
 
-        $file      = APP_PATH . 'engine' . DIRECTORY_SEPARATOR . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
-        if(is_file($file)){
-            require $file;
+        if (is_file(ALT_PATH . 'vendor' . $file)) {
+            require ALT_PATH . 'vendor' . $file;
+            return TRUE;
+        }
+
+        if (is_file(ALT_PATH . '../src' . $file)) {
+            require ALT_PATH . '../src' . $file;
             return TRUE;
         }
         return FALSE;
     }
 
-    public static function response($output = array(), $options = array()){
+    public static function response($output = array(), $options = array())
+    {
         // adding benchmark time and memory
         self::$timestop = microtime(true);
-        if(self::$environment == self::ENV_DEVELOPMENT) $output['t'] = round(self::$timestop - self::$timestart, 6);
-        if(self::$environment == self::ENV_DEVELOPMENT) $output['u'] = memory_get_peak_usage(true) / 1000;
+        if (self::$environment == self::ENV_DEVELOPMENT) $output['t'] = round(self::$timestop - self::$timestart, 6);
+        if (self::$environment == self::ENV_DEVELOPMENT) $output['u'] = memory_get_peak_usage(true) / 1000;
+
+        // log
+        System_Log::record($output);
 
         // switch by output type
-        switch(self::$output){
+        switch (self::$output) {
             case self::OUTPUT_JSON:
             default:
+//                $output = json_encode(unserialize(str_replace(array('NAN;', 'INF;'), '0;', serialize($output))));
                 $output = json_encode($output);
+
+                if (self::$environment == self::ENV_PRODUCTION && self::$config['security'])
+                    $output = Alt_Security::encrypt($output, self::$config['security']);
                 break;
             case self::OUTPUT_XML:
-                $text  = '<?xml version="1.0" encoding="UTF-8"?>';
+                $text = '<?xml version="1.0" encoding="UTF-8"?>';
                 $text .= '<xml>';
                 $text .= self::xml_encode($output['s'] == self::STATUS_OK && $output['d'] ? $output['d'] : $output['m']);
                 $text .= '</xml>';
                 $output = $text;
+
+                if (self::$environment == self::ENV_PRODUCTION && self::$config['security'])
+                    $output = Alt_Security::encrypt($output, self::$config['security']);
                 break;
             case self::OUTPUT_HTML:
                 $output = $output['s'] == self::STATUS_OK && $output['d'] ? $output['d'] : $output['m'];
                 break;
         }
 
-        if(self::$environment == self::ENV_PRODUCTION && self::$config['security'])
-            $output = Alt_Security::encrypt($output, self::$config['security']);
-
-        // record all
-        $request = $_REQUEST;
-        unset($request["token"]);
-
-        Alt_Log::log(array(
-            'ipaddress' => $_SERVER['REMOTE_ADDR'],
-            'token' => System_Auth::get_token(),
-            'useragent' => $_SERVER['HTTP_USER_AGENT'],
-            'url' => $_SERVER['REQUEST_URI'],
-            'request' => json_encode($request),
-            'response' => $output,
-            'datetime' => date("Y-m-d H:i:s"),
-        ));
-
         header('Content-length: ' . strlen($output));
-        echo $output;die;
+        echo $output;
+        die;
     }
 
-    public static function xml_encode($data){
+    public static function xml_encode($data)
+    {
         $str = '';
-        switch(gettype($data)){
+        switch (gettype($data)) {
             case 'string':
             case 'number':
             case 'integer':
@@ -359,7 +417,7 @@ class Alt {
                 break;
             case 'array':
             case 'object':
-                foreach($data as $key => $value){
+                foreach ($data as $key => $value) {
                     $str .= '<' . $key . '>';
                     $str .= self::xml_encode($value);
                     $str .= '</' . $key . '>';
@@ -367,5 +425,21 @@ class Alt {
                 break;
         }
         return $str;
+    }
+
+    public static function url(){
+        $currentPath = $_SERVER['PHP_SELF'];
+
+        // output: Array ( [dirname] => /myproject [basename] => index.php [extension] => php [filename] => index )
+        $pathInfo = pathinfo($currentPath);
+
+        // output: localhost
+        $hostName = $_SERVER['HTTP_HOST'];
+
+        // output: http://
+        $protocol = strtolower(substr($_SERVER["SERVER_PROTOCOL"],0,5))=='https://'?'https://':'http://';
+
+        // return: http://localhost/myproject/
+        return $protocol.$hostName.$pathInfo['dirname']."/";
     }
 }

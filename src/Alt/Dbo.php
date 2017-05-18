@@ -10,13 +10,13 @@ class Alt_Dbo {
     // primary key for the table
     public $pkey;
     // table name in database
-    protected $table_name;
+    public $table_name;
     // table fields
     protected $table_fields = array();
     // table dynamic fields data
     protected $table_dynfields = array();
     // view name in database
-    protected $view_name;
+    public $view_name;
     // view fields
     protected $view_fields = array();
     // view dynamic fields data
@@ -78,9 +78,9 @@ class Alt_Dbo {
         $str = "COLUMN_GET(";
 
         if(count($column) == 2){
-            $str .= $column[0] . ", " . $this->quote($column[1]);
+            $str .= $column[0] . ", " . $this->quote(str_replace(")", "", str_replace("(", "", $column[1])));
         }else{
-            $str .= $this->column_get(array_splice($column, 0, count($column)-1), true) . ", " . $this->quote($column[count($column)-1]);
+            $str .= $this->column_get(array_splice($column, 0, count($column)-1), true) . ", " . $this->quote(str_replace(")", "", str_replace("(", "", $column[count($column)-1])));
         }
 
         $str .=  " AS " . ($isbinary ? "BINARY" : "CHAR") . ")";
@@ -101,7 +101,7 @@ class Alt_Dbo {
                 default:
                     // set value
                     $tmp = explode(" ", $v);
-                    if(in_array(trim($tmp[0]), array("like", "=", "<", ">", "<>", "<=", ">=", "in", "not", "between"))){
+                    if(in_array(trim($tmp[0]), array("like", "=", "<", ">", "<>", "<=", ">=", "in", "not", "is", "between"))){
                         $v = $tmp[0] . " " . substr($v, strlen($tmp[0])+1);
                     }else{
                         $v = "like " . $this->quote("%" . $v . "%");
@@ -141,7 +141,14 @@ class Alt_Dbo {
                     $item = substr($item, 0, strlen($item)-1);
 
                 $column = explode(".", $item);
-                $format = $this->column_get($column);
+
+                if($column[count($column)-1] == "*") {
+                    unset($column[count($column) - 1]);
+                    $format = "COLUMN_JSON(" . $this->column_get($column, true) . ")";
+                }else{
+                    $format = $this->column_get($column);
+                }
+
                 $field = str_replace($match[0][$i], $format, $field);
             }
         }
@@ -189,11 +196,28 @@ class Alt_Dbo {
 
             foreach($tmp as $field){
                 $field = trim($field);
-
                 if(isset($dynfields[$field])){
                     $select[] = "CAST(COLUMN_JSON(" . $field . ") AS CHAR) AS " . $field;
                 }else{
-                    $select[] = $field;
+                    $dynfield   = $this->dynfields($field);
+                    $tmp        = explode(".", str_replace("..", ".", str_replace("[", ".", str_replace("]", ".", $field))));
+                    $dyncolumn  = count($tmp) > 1 ? str_replace("dynfields(", "", strtolower($tmp[0])) : "";
+                    $tmp        = explode("(", $dyncolumn);
+                    $dyncolumn  = count($tmp) > 1 ? $tmp[1] : $tmp[0];
+
+                    if(strpos($dynfield, "COLUMN_") !== FALSE){
+                        $as = explode(" as ", strtolower($field));
+                        if(count($as) > 1){
+                            $dynfield = str_replace(" as " . $as[1], "", str_replace(" AS " . $as[1], "", $dynfield));
+                            $select[] = $dynfield . (count($tmp) > 1 ? ")" : "") . " AS " . $as[1];
+                        }else{
+                            $select[] = $dynfield . (count($tmp) > 1 ? ")" : "") . " AS " . $dyncolumn;
+                        }
+                    }else if(isset($dynfields[$dynfield])){
+                        $select[] = "CAST(COLUMN_JSON(" . $field . ") AS CHAR) AS " . $field;
+                    }else{
+                        $select[] = $field;
+                    }
                 }
             }
         }else{
@@ -231,9 +255,9 @@ class Alt_Dbo {
 
         foreach($data as $key => $value){
             $values = $value;
-            if((gettype($value) == "string" || gettype($value) == "number" || gettype($value) == "integer" || gettype($value) == "double") && $value != ""){
+            if((gettype($value) == "string" || gettype($value) == "number" || gettype($value) == "integer" || gettype($value) == "double") && $value !== ""){
                 $tmp = explode(" ", $value);
-                if(in_array(trim($tmp[0]), array("like", "=", "<", ">", "<>", "<=", ">=", "in", "not", "between"))){
+                if(in_array(trim($tmp[0]), array("like", "=", "<", ">", "<>", "<=", ">=", "in", "not", "is", "between"))){
                     $values = array($tmp[0], substr($value, strlen($tmp[0])+1));
                 }else{
                     $values = array("like", $this->quote("%" . $value . "%"));
@@ -241,7 +265,7 @@ class Alt_Dbo {
             }
 
             if($this->table_fields[$key] !== null || $this->view_fields[$key] !== null){
-                $where[] = $key . " " . $values[0] . " " . $values[1];
+                $where[] = $key . " " . $values[0] . " " . ($values[1] === null ? "IS NULL" : $values[1]);
             }else if($this->table_dynfields[$key] !== null){
                 $where = array_merge($where, $this->arrfields($key, $values));
             }
@@ -382,7 +406,7 @@ class Alt_Dbo {
         if($fields["entrytime"] !== null)
             $data["entrytime"] = $data["entrytime"] != "" ? $data["entrytime"] : date("Y-m-d H:i:s");
         if($fields["entryuser"] !== null){
-            $userdata = System_Auth::get_userdata();
+            $userdata = Alt_Auth::get_userdata();
             $data["entryuser"] = $data["entryuser"] != "" ? $data["entryuser"] : $userdata["userid"];
         }
 
@@ -433,7 +457,7 @@ class Alt_Dbo {
             $data[0]["entrytime"] = $data[0]["entrytime"] != "" ? $data[0]["entrytime"] : date("Y-m-d H:i:s");
         }
         if($fields["entryuser"] !== null){
-            $userdata = System_Auth::get_userdata();
+            $userdata = Alt_Auth::get_userdata();
             $data[0]["entryuser"] = $data[0]["entryuser"] != "" ? $data[0]["entryuser"] : $userdata["userid"];
         }
 
@@ -454,7 +478,7 @@ class Alt_Dbo {
                 $item["entrytime"] = $item["entrytime"] != "" ? $item["entrytime"] : date("Y-m-d H:i:s");
             }
             if($fields["entryuser"] !== null){
-                $userdata = System_Auth::get_userdata();
+                $userdata = Alt_Auth::get_userdata();
                 $item["entryuser"] = $item["entryuser"] != "" ? $item["entryuser"] : $userdata["userid"];
             }
 
@@ -493,11 +517,11 @@ class Alt_Dbo {
     public function get($data = array(), $returnsql = false) {
         if(isset($data[$this->pkey])){
             $tmp = explode(" ", $data[$this->pkey]);
-            if(!in_array(trim($tmp[0]), array("like", "=", "<", ">", "<>", "<=", ">=", "in", "not", "between"))){
-            $data[$this->pkey] = str_replace("'", "", str_replace("= ", "", $data[$this->pkey]));
-            $data["where"] = $this->pkey ." = ". $this->quote($data[$this->pkey]);
-            unset($data[$this->pkey]);
-        }
+            if(!in_array(trim($tmp[0]), array("like", "=", "<", ">", "<>", "<=", ">=", "in", "is", "not", "between"))){
+                $data[$this->pkey] = str_replace("'", "", str_replace("= ", "", $data[$this->pkey]));
+                $data["where"] = $this->pkey ." = ". $this->quote($data[$this->pkey]);
+                unset($data[$this->pkey]);
+            }
         }
 
         $sql = "select ".$this->get_select($data) . " from " . $this->get_from($data) . $this->get_join($data) . $this->get_where($data) . $this->get_group($data) . $this->get_order($data) . $this->get_limit($data);
@@ -508,7 +532,7 @@ class Alt_Dbo {
         $dynfields = $this->get_dynfields();
         if(count($dynfields) > 0){
             for ($i = 0; $i < count($res); $i++) {
-                foreach($dynfields as $field => $value) if(isset($res[$i][$field])) {
+                foreach($res[$i] as $field => $value) {
                     $decoded = json_decode($res[$i][$field], true);
                     $res[$i][$field] = $decoded !== NULL && count($decoded) > 0 ? $decoded : $value;
                 }
@@ -549,7 +573,7 @@ class Alt_Dbo {
             $data["modifiedtime"] = $data["modifiedtime"] != "" ? $data["modifiedtime"] : date("Y-m-d H:i:s");
         }
         if($table_fields["modifieduser"] !== null){
-            $userdata = System_Auth::get_userdata();
+            $userdata = Alt_Auth::get_userdata();
             $data["modifieduser"] = $data["modifieduser"] != "" ? $data["modifieduser"] : $userdata["userid"];
         }
 
@@ -599,7 +623,7 @@ class Alt_Dbo {
                 $data["deletedtime"] = $data["deletedtime"] != "" ? $data["deletedtime"] : date("Y-m-d H:i:s");
             }
             if($fields["deleteduser"] !== null){
-                $userdata = System_Auth::get_userdata();
+                $userdata = Alt_Auth::get_userdata();
                 $data["deleteduser"] = $data["deleteduser"] != "" ? $data["deleteduser"] : $userdata["userid"];
             }
             if($fields["isdeleted"] !== null)       $data["isdeleted"] = 1;
@@ -634,6 +658,29 @@ class Alt_Dbo {
             }
         }
         return $ref;
+    }
+
+    public function table($data, $returnsql = false){
+        return array(
+            "total" => $this->count($data, $returnsql),
+            "list" => $this->get($data, $returnsql),
+        );
+    }
+
+    public function save($data, $returnsql = false){
+        if(isset($data[$this->pkey]) && $data[$this->pkey] != ""){
+            $tmp = array();
+            $tmp[$this->pkey] = $data[$this->pkey];
+            $count = $this->count($tmp);
+
+            if($count > 0)
+                return $this->update($data, $returnsql);
+        }
+
+        if($this->autoinc)
+            unset($data[$this->pkey]);
+
+        return $this->insert($data, $returnsql);
     }
 
     public function truncate(){

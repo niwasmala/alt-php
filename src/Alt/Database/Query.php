@@ -236,7 +236,7 @@ class Alt_Database_Query {
 		if ($this->_lifetime !== NULL AND $this->_type === Alt_Database::SELECT)
 		{
 			// Set the cache key based on the Alt_Database instance name and SQL
-			$cache_key = "Alt_Database::query("".$db."", "".$sql."")";
+			$cache_key = "Alt_Database::query(\"".$db."\", \"".$sql."\")";
 
 			// Read the cache first to delete a possible hit with lifetime <= 0
 			if (($result = Alt::cache($cache_key, NULL, $this->_lifetime)) !== NULL

@@ -37,11 +37,14 @@ class Alt_Security {
         $code = hex2bin($text);
         $td = mcrypt_module_open($options["algorithm"], '', $options["mode"], $options["iv"]);
         mcrypt_generic_init($td, $options["key"], $options["iv"]);
+
         $decrypted = mdecrypt_generic($td, $code);
         mcrypt_generic_deinit($td);
         mcrypt_module_close($td);
         $ut =  utf8_encode(trim($decrypted));
-        return Alt_Security::pkcs5_unpad($ut);
+
+        $res = Alt_Security::pkcs5_unpad($ut);
+        return $res ? $res : $ut;
     }
 
     public static function pkcs5_pad($text) {
