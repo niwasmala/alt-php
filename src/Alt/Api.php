@@ -1,11 +1,13 @@
 <?php defined("ALT_PATH") or die("No direct script access.");
 
-class Alt_Api {
+abstract class Alt_Api {
 
     public $url = "";
     public $route = "";
     public $data = array();
     public $header = array();
+    public $security = null;
+    public $environment = Alt::ENV_PRODUCTION;
 
     public function __construct($url = "", $route = ""){
         $this->url = $url != "" ? $url : $this->url;
@@ -22,6 +24,10 @@ class Alt_Api {
 
     public function get($data = array(), $header = array()){
         return $this->connect("list", $data, $header);
+    }
+
+    public function keyvalues($data = array(), $header = array()){
+        return $this->connect("keyvalues", $data, $header);
     }
 
     public function table($data = array(), $header = array()){
@@ -57,7 +63,26 @@ class Alt_Api {
             rtrim($body, "&");
         }
 
+        // encrypt
+        if($this->environment != Alt::ENV_DEVELOPMENT && isset($this->security)){
+            $body = Alt_Security::encrypt($body, $this->security);
+        }
+
         return $body;
+    }
+
+    public function parse_response($response = ""){
+        // encrypt
+        if($this->environment != Alt::ENV_DEVELOPMENT && isset($this->security)){
+            $response = Alt_Security::decrypt($response, $this->security);
+        }
+
+        $response = json_decode($response, true);
+
+        if(!isset($response["s"]) || $response["s"] != Alt::STATUS_OK)
+            throw new Alt_Exception(isset($response["m"]) ? $response["m"] : "Tidak dapat terhubung ke " . $this->url);
+
+        return $response["d"];
     }
 
     public function connect($url, $data = array(), $header = array()){
@@ -92,6 +117,6 @@ class Alt_Api {
         // close connection
         curl_close($ch);
 
-        return json_decode($body, true);
+        return $this->parse_response($body);
     }
 }

@@ -136,7 +136,7 @@ class Alt
         self::$environment = self::$config['app']['environment'] ? self::$config['app']['environment'] : self::$environment;
 
         // set log level
-        Alt_Log::$level = self::$config['log']['level'] ? self::$config['log']['level'] : (self::$environment == self::ENV_PRODUCTION ? Alt_Log::LEVEL_ERROR : Alt_Log::LEVEL_LOG);
+        Alt_Log::$level = self::$config['log']['level'] ? self::$config['log']['level'] : (self::$environment != self::ENV_DEVELOPMENT ? Alt_Log::LEVEL_ERROR : Alt_Log::LEVEL_LOG);
 
         // set default output
         self::$output = self::$config['app']['output'] ? self::$config['app']['output'] : self::$output;
@@ -169,7 +169,7 @@ class Alt
 
                 $input = file_get_contents('php://input');
                 if ($input != "") {
-                    if (self::$environment == self::ENV_PRODUCTION && self::$config['security']) {
+                    if (self::$environment != self::ENV_DEVELOPMENT && self::$config['security']) {
                         $input = Alt_Security::decrypt($input, self::$config['security']);
                     }
 
@@ -335,7 +335,7 @@ class Alt
         self::$environment = self::$config['app']['environment'] ? self::$config['app']['environment'] : self::$environment;
 
         // set log level
-        Alt_Log::$level = self::$config['log']['level'] ? self::$config['log']['level'] : (self::$environment == self::ENV_PRODUCTION ? Alt_Log::LEVEL_ERROR : Alt_Log::LEVEL_LOG);
+        Alt_Log::$level = self::$config['log']['level'] ? self::$config['log']['level'] : (self::$environment != self::ENV_DEVELOPMENT ? Alt_Log::LEVEL_ERROR : Alt_Log::LEVEL_LOG);
 
         // set default output
         self::$output = self::$config['app']['output'] ? self::$config['app']['output'] : self::$output;
@@ -377,7 +377,7 @@ class Alt
 //                $output = json_encode(unserialize(str_replace(array('NAN;', 'INF;'), '0;', serialize($output))));
                 $output = json_encode($output);
 
-                if (self::$environment == self::ENV_PRODUCTION && self::$config['security'])
+                if (self::$environment != self::ENV_DEVELOPMENT && self::$config['security'])
                     $output = Alt_Security::encrypt($output, self::$config['security']);
                 break;
             case self::OUTPUT_XML:
@@ -387,7 +387,7 @@ class Alt
                 $text .= '</xml>';
                 $output = $text;
 
-                if (self::$environment == self::ENV_PRODUCTION && self::$config['security'])
+                if (self::$environment != self::ENV_DEVELOPMENT && self::$config['security'])
                     $output = Alt_Security::encrypt($output, self::$config['security']);
                 break;
             case self::OUTPUT_HTML:
