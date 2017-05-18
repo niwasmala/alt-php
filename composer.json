@@ -2,6 +2,7 @@
     "name": "niwasmala/alt-php",
     "description": "Alt Framework - PHP Version",
     "type": "library",
+    "version": "2.0.1",
     "license": "MIT",
     "authors": [
         {
