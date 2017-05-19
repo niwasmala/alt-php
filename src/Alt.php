@@ -120,6 +120,7 @@ class Alt
      */
     public static function start()
     {
+        session_cache_limiter('private_no_expire');
         session_start();
 
         header('Access-Control-Allow-Origin: *');
