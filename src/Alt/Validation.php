@@ -34,8 +34,13 @@ class Alt_Validation {
     public function check(){
         list($res, $messages) = $this->validate();
 
-        if(!$res)
-            throw new Alt_Exception(implode(" ", $messages));
+        if(!$res) {
+            if(Alt::$output === Alt::OUTPUT_HTML){
+                header("Location: " . Alt::url() . "error?message=" . base64_encode(implode(";", $messages)));
+            }else{
+                throw new Alt_Exception(implode(" ", $messages));
+            }
+        }
     }
 
     /**
