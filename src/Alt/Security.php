@@ -9,8 +9,8 @@ class Alt_Security {
         $options = array_union($options, array(
             "algorithm" => MCRYPT_RIJNDAEL_128,
             "mode"      => MCRYPT_MODE_CBC,
-            "key"       => Alt::$config["app"]["id"],
-            "iv"        => Alt::$config["app"]["id"],
+            "key"       => Alt::$config["security"]["key"],
+            "iv"        => Alt::$config["security"]["iv"],
         ));
 
         $str = Alt_Security::pkcs5_pad($text);
@@ -30,8 +30,8 @@ class Alt_Security {
         $options = array_union($options, array(
             "algorithm" => MCRYPT_RIJNDAEL_128,
             "mode"      => MCRYPT_MODE_CBC,
-            "key"       => Alt::$config["app"]["id"],
-            "iv"        => Alt::$config["app"]["id"],
+            "key"       => Alt::$config["security"]["iv"],
+            "iv"        => Alt::$config["security"]["iv"],
         ));
 
         $code = hex2bin($text);
