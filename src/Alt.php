@@ -369,7 +369,8 @@ class Alt
         if (self::$environment == self::ENV_DEVELOPMENT) $output['u'] = memory_get_peak_usage(true) / 1000;
 
         // log
-        System_Log::record($output);
+        if(class_exists("System_Log"))
+            System_Log::record($output);
 
         // switch by output type
         switch (self::$output) {

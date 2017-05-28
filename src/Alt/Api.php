@@ -119,4 +119,9 @@ abstract class Alt_Api {
 
         return $this->parse_response($body);
     }
+
+    public function quote($string){
+        $db = Alt_Db::instance();
+        return $db->quote($string);
+    }
 }
