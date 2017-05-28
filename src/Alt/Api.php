@@ -47,8 +47,8 @@ abstract class Alt_Api {
     }
 
     public function set_header($header = array()){
-        if(Alt_Auth::get_token() && !isset($header["Authorization"]))
-            $header["Authorization"] = "Bearer " . Alt_Auth::get_token();
+        if(Alt_Auth::get_token())
+            $header[] = "Authorization: Bearer " . Alt_Auth::get_token();
 
         return array_union($header, $this->header);
     }
@@ -74,7 +74,7 @@ abstract class Alt_Api {
         return $body;
     }
 
-    public function parse_response($response = ""){
+    public function parse_response($response = "", $url = ""){
         // encrypt
         if($this->environment != Alt::ENV_DEVELOPMENT && isset($this->security)){
             $response = Alt_Security::decrypt($response, $this->security);
@@ -83,7 +83,7 @@ abstract class Alt_Api {
         $response = json_decode($response, true);
 
         if(!isset($response["s"]) || $response["s"] != Alt::STATUS_OK)
-            throw new Alt_Exception(isset($response["m"]) ? $response["m"] : "Tidak dapat terhubung ke " . $this->url);
+            throw new Alt_Exception(isset($response["m"]) ? $response["m"] : "Tidak dapat terhubung ke " . $this->url . $url);
 
         return $response["d"];
     }
@@ -96,7 +96,7 @@ abstract class Alt_Api {
         // open connection
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_VERBOSE, 1);
+        curl_setopt($ch, CURLOPT_VERBOSE, $this->environment === Alt::ENV_DEVELOPMENT);
         curl_setopt($ch, CURLOPT_HEADER, 1);
 
         // set http header
@@ -120,7 +120,7 @@ abstract class Alt_Api {
         // close connection
         curl_close($ch);
 
-        return $this->parse_response($body);
+        return $this->parse_response($body, $url);
     }
 
     public function quote($string){
