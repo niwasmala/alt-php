@@ -47,6 +47,9 @@ abstract class Alt_Api {
     }
 
     public function set_header($header = array()){
+        if(Alt_Auth::get_token() && !isset($header["Authorization"]))
+            $header["Authorization"] = "Bearer " . Alt_Auth::get_token();
+
         return array_union($header, $this->header);
     }
 
