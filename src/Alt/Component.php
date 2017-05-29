@@ -32,19 +32,4 @@ class Alt_Component {
     {
         return new self($location, $data);
     }
-
-    public function __get($name)
-    {
-        return isset($this->_data[$name]) ? $this->_data[$name] : $this->{$name};
-    }
-
-    public function __set($name, $value)
-    {
-        if(isset($this->{$name})){
-            $this->{$name} = $value;
-        }else{
-            $this->_data[$name] = $value;
-        }
-        return $this;
-    }
 }
