@@ -108,7 +108,7 @@ class Alt_Validation {
      */
     public static function min_length($value, $length)
     {
-        return UTF8::strlen($value) >= $length;
+        return strlen($value) >= $length;
     }
 
     /**
@@ -120,7 +120,7 @@ class Alt_Validation {
      */
     public static function max_length($value, $length)
     {
-        return UTF8::strlen($value) <= $length;
+        return strlen($value) <= $length;
     }
 
     /**
@@ -136,13 +136,13 @@ class Alt_Validation {
         {
             foreach ($length as $strlen)
             {
-                if (UTF8::strlen($value) === $strlen)
+                if (strlen($value) === $strlen)
                     return TRUE;
             }
             return FALSE;
         }
 
-        return UTF8::strlen($value) === $length;
+        return strlen($value) === $length;
     }
 
     /**
@@ -169,7 +169,7 @@ class Alt_Validation {
      */
     public static function email($email, $strict = FALSE)
     {
-        if (UTF8::strlen($email) > 254)
+        if (strlen($email) > 254)
         {
             return FALSE;
         }
