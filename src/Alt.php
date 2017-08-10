@@ -36,7 +36,7 @@ if (!function_exists('getallheaders')) {
     /**
      * Get all HTTP header key/values as an associative array for the current request.
      *
-     * @return string[string] The HTTP header key/value pairs.
+     * @return array[string] The HTTP header key/value pairs.
      */
     function getallheaders()
     {
@@ -167,6 +167,10 @@ class Alt
                 $headers = getallheaders();
                 if (isset($headers['Authorization']))
                     list($bearer, $_REQUEST['token']) = explode(' ', $headers['Authorization']);
+                if (isset($headers['ALT-TOKEN']))
+                    $_REQUEST['token'] = $headers['ALT-TOKEN'];
+                if (isset($headers['Alt-Token']))
+                    $_REQUEST['token'] = $headers['Alt-Token'];
 
                 $input = file_get_contents('php://input');
                 if ($input != "") {
@@ -367,10 +371,6 @@ class Alt
         self::$timestop = microtime(true);
         if (self::$environment == self::ENV_DEVELOPMENT) $output['t'] = round(self::$timestop - self::$timestart, 6);
         if (self::$environment == self::ENV_DEVELOPMENT) $output['u'] = memory_get_peak_usage(true) / 1000;
-
-        // log
-        if(class_exists("System_Log"))
-            System_Log::record($output);
 
         // switch by output type
         switch (self::$output) {

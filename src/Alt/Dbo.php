@@ -640,7 +640,7 @@ class Alt_Dbo {
         return $res;
     }
 
-    public function keyvalues($data, $returnsql = false){
+    public function keyvalues($data = array(), $returnsql = false){
         $key = $data["key"] ? $data["key"] : $this->pkey;
         if(isset($data["value"])) $data["select"] = $key . ", " . $data["values"];
         $tmp = $this->get($data, $returnsql);
@@ -660,10 +660,21 @@ class Alt_Dbo {
         return $ref;
     }
 
-    public function table($data, $returnsql = false){
+    public function table($data = array(), $returnsql = false){
+        $data["page"]   = isset($data["page"])      ? $data["page"]     : 1;
+        $data["limit"]  = isset($data["limit"])     ? $data["limit"]    : (isset($data["show"]) ? $data["show"] : 20);
+        $data["offset"] = isset($data["offset"])    ? $data["offset"]   : ($data["page"]-1) * $data["limit"];
+
+        $data["count"]  = $this->count($data);
+        $data["total"]  = $data["limit"] > 0 ? ceil($data["count"] / $data["limit"]) : 0;
+
         return array(
-            "total" => $this->count($data, $returnsql),
-            "list" => $this->get($data, $returnsql),
+            "limit" => $data["limit"],
+            "offset" => $data["offset"],
+            "count" => $data["count"],
+            "total" => $data["total"],
+            "page" => $data["page"],
+            "list" => $this->get($data),
         );
     }
 
