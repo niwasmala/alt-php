@@ -125,7 +125,7 @@ class Alt
 
         header('Access-Control-Allow-Origin: *');
         header('Access-Control-Allow-Methods: *');
-        header('Access-Control-Allow-Headers: accept, authorization, content-type, x-requested-with');
+        header('Access-Control-Allow-Headers: accept, authorization, content-type, x-requested-with, alt-token');
 
         // set timestart
         self::$timestart = $_SERVER['REQUEST_TIME_FLOAT'];
